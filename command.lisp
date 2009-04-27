@@ -47,6 +47,8 @@
 (defvar *max-command-alias-depth* 10
   "The maximum number of times an command alias is expanded before an Error is raised.")
 
+(defvar *last-command-error* nil)
+
 (define-condition command-docstring-warning (style-warning)
   ;; Don't define an accessor to prevent collision with the generic command
   ((command :initarg :command))
@@ -553,10 +555,12 @@ user aborted."
         (restart-case
             (handler-bind
                 ((error (lambda (c)
-                          (invoke-restart 'eval-command-error
-                                          (format nil "^B^1*Error In Command '^b~a^B': ^n~A~a"
-                                                  cmd c (if *show-command-backtrace*
-                                                            (backtrace-string) ""))))))
+			  (let ((backtrace (backtrace-string)))
+			    (setf *last-command-error* (list c backtrace))
+			    (invoke-restart 'eval-command-error
+					    (format nil "^B^1*Error In Command '^b~a^B': ^n~A~a" 
+						    cmd c (if *show-command-backtrace* 
+							      backtrace "")))))))
               (parse-and-run-command cmd))
           (eval-command-error (err-text)
             :interactive (lambda () nil)
