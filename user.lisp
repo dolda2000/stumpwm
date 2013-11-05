@@ -290,9 +290,11 @@ instance. @var{all-groups} overrides this default. Similarily for
          ;; win, if current win matches. getting 2nd element means
          ;; skipping over the current win, to cycle through matches
          (other-matches (member (current-window) matches))
-         (win (if (> (length other-matches) 1)
-                  (second other-matches)
-                  (first matches))))
+         (in-group (find (current-group) matches :key #'window-group))
+         (win (cond ((and in-group (not (eq in-group (current-window)))) in-group)
+                    ((> (length other-matches) 1)
+                     (second other-matches))
+                    (t (first matches)))))
     (if win
         (focus-all win)
         (run-shell-command cmd))))
