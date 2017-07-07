@@ -1065,6 +1065,18 @@ window. Default to the current window. if
 
 (defcommand-alias select select-window)
 
+(defcommand raise-window-no-focus (query) ((:window-name "Raise: "))
+  "Raise the first window that starts with @var{query} without focusing it."
+  (let (match)
+    (labels ((match (win)
+               (let* ((wname (window-name win))
+                      (end (min (length wname) (length query))))
+                 (string-equal wname query :end1 end :end2 end))))
+      (unless (null query)
+        (setf match (find-if #'match (group-windows (current-group)))))
+      (when match
+        (raise-window match)))))
+
 (defcommand select-window-by-name (name) ((:window-name "Select: "))
   "Switch to the first window whose name is exactly @var{name}."
   (let ((win (find name (group-windows (current-group))
